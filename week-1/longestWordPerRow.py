@@ -2,7 +2,7 @@
 
 Given a list of words, return the longest word that can be typed using only one row of a QWERTY keyboard.
 
-example: 
+example:
 words = ["typewriter", "gas", "dad", "pop", "zoo", "queen"]
 '''
 
