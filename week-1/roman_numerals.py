@@ -12,7 +12,15 @@ M	1,000
 4 = IV
 
 
-Will fix sometime later
+fix for occurrences like this:
+x = 9
+    correct: IX
+    wrong: VIV
+x = 3999
+    correct: MMMCMXCIX
+    wrong: MMMDCDLXLVIV
+
+if possible, reduce into only one for loop for optimization
 '''
 
 
@@ -52,15 +60,3 @@ while True:
             answer += letter * numerals.count(number)
 
     print(answer)
-
-
-'''
-
-
-def count_occurrence(numerals, num):
-    count = 0
-    for n in numerals:
-        if n == num:
-            count += 1
-    return count
-'''
