@@ -1,0 +1,10 @@
+May 3, 2025 (Saturday)
+
+Stop being distracted self!
+Here is an article on distraction that I find interesting, 
+follow with this: https://zenhabits.net/distraction/
+Went to attend a mass protest though and was understandably tired when I went back home. I have done some coding like an hour before so  maybe that counts? I have to believe that it does because the important thing is that I show up no matter how slow my progress is.
+
+
+Output Finished:
+1. roman_numerals.py: converts number to roman numerals. FLAWED, but I have already identified the issue
