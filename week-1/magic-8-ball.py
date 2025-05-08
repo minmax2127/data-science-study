@@ -3,7 +3,7 @@
 
 import random
 
-def shake_ball(numm) : 
+def shake_ball(num) : 
     if num == 0:
         return 'Stop playing here. Do your schoolworks!'
     elif num == 1:
@@ -24,9 +24,25 @@ def shake_ball(numm) :
         return 'Outlook not looking so good'
     elif num == 9:
         return 'Very doubtful'
-    
+
+# List approach
+def shake_ball_list(num):
+    messages = ['Stop playing here', 
+        'It is certain',
+        'It is decidedly so',
+        'Yes definitely',
+        'Reply hazy try again',
+        'Ask again later',
+        'Concentrate and ask again',
+        'My reply is no',
+        'Outlook not so good',
+        'Very doubtful']
+    return messages[num]
+
+
 
 print("\nMagic 8 Ball!")
+
 
 
 while True:
@@ -35,13 +51,9 @@ while True:
         break
 
     # get the average of 10 results (for better chance)
-    avg = 0
-    for i in range(0, 9):
-        num = random.randint(0,9)
-        avg += num
-    avg = avg / 10
+    num = random.randint(0,9)
 
-    print(shake_ball(avg))
+    print(shake_ball_list(num))
 
     print("\n\tEnter 'stop' to end program.")
     
