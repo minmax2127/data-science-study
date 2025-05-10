@@ -1,206 +1,169 @@
 from tabulate import tabulate
 import os
-import math
 
+# clears the terminal
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-class Table:   
-    table = []
-    headers = ["ID", "Item/Source", "Category", "Amount"]
-    categories = []
+# Class that performs the table operations (Adding, Editing, Deleting, Filtering, etc.)
+class Table:  
+    # initialize the object 
+    def __init__(self, title, table, headers, x, categories = []):
+        self.title = title  # title of the table
+        self.table = table  # data to be displayed; contains rows
+        self.headers = headers # the label of each column
+        self.x = x          # refers to the item/source name
+        self.categories = categories  # list of categories in a table
 
+    # calculates total amount
     def Calculate_Total(self):
-        total = 0.00
+        total = 0
         for row in self.table:
             total += row[3]
         return total
 
-    def Show_Table(self, table_to_print) :
-        if len(table_to_print) == 0:
+    # displays the table in grid
+    def Show_Table(self) :
+        print("\n\t" + self.title + " Table\n")
+
+        # if no data
+        if len(self.table) == 0:
             print("no data available:(")
+
+        # if there is data
         else:
-            show_table = tabulate(table_to_print, headers=self.headers)
-            print(show_table)
+            # appends an additional row to show total
+            self.table.append([None, None, None, self.Calculate_Total()]) 
+            show_table = tabulate(self.table, headers=self.headers, tablefmt="grid")
+            print(show_table) # display table
+            self.table.remove(self.table[-1])
+        print()
 
-    def Add_Item(self, item, category, amount):
-        self.table.append([len(self.table) + 1, item, category, amount])
+    # asks input from user about the item to be added
+    def Add_Item(self):  
+        # will continuously ask user to input a new values if the values inputted are invalid
+        while True: 
+            print()
+            try: 
+                item = input(str(self.x) + ": ")
+                category = input("Category: ")
+                amount = float(input("Amount: "))
 
+                # if amount is valid, add item to the table
+                self.table.append([len(self.table) + 1, item, category, amount])
+                break
+
+            except ValueError:
+                print("Invalid input. Please try again!")
+
+    # returns the index of an item based on its id
     def Get_Item_Index_By_Id(self, id):
         index = 0
+        # iterates through every row on the table and returns the index of the row that matches the id given
         for row in self.table:
             if row[0] == id:
                 return index
             index += 1
-        return len(self.table) + 1000
+        return len(self.table) + 1000 # returns "decoy" value if id does not have a match
     
-    def Get_Item_By_Id(self, id):
-        try:
-            return self.table[self.Get_Item_Index_By_Id(id)]
-        except IndexError:
-            return None
-        
-    def Edit_Item(self, index, key, value):
-        self.table[index][key] = value
+    # asks input from user about the item to be editted
+    def Edit_Item(self):
+        while True:
+            try:
+                id = int(input("Id: "))
+                item_index = self.Get_Item_Index_By_Id(id)
+                if item_index > len(self.table):
+                    print("ID not found!")
+                    continue
+                print(self.table[item_index])
 
-    def Delete_Item(self, id):
-        if self.Get_Item_By_Id(id) == None:
-            print("Not found!")
-        else:
-            self.table.remove(self.Get_Item_By_Id(id)) 
+                key = 0
+                while True:
+                    choice = input("Edit [x] " + self.headers[1] + ", [c] category, [a] amount: ")
+                    if choice != 'x' and choice != 'c' and choice != 'a':
+                        print("Invalid choice!")
+                        continue
+                    
+                    if choice == 'x':
+                        key = 1
+                    elif choice == 'c':
+                        key = 2
+                    else:
+                        key = 3
+                    
+                    break
 
-    def Display_Operation(self, operation):
-        print("-------------------")
-        print("  " + operation)
-        print("-------------------")
-        
+                value = ""
+                while True:
+                    try:
+                        value = input("Input new value: ")
+                        if key == 3:
+                            value = float(value)
+                        break
+                    except ValueError:
+                        print("Invalid value!")
 
+                self.table[item_index][key] = value
+
+                break
+            except ValueError:
+                print("Invalid ID!")
+                continue
+
+    # takes user input for the id then deletes it
+    def Delete_Item(self):
+        while True:
+            id = int(input("Id: "))
+            if self.Get_Item_Index_By_Id(id) > len(self.table):
+                print("Not found!")
+                continue
+            else:
+                self.table.remove(self.table[self.Get_Item_Index_By_Id(id)]) 
+                break
+
+    # returns categories
     def Get_Categories(self):
         self.categories = []
         for row in self.table:
             self.categories.append(row[2])
         self.categories = list(set(self.categories))
         return self.categories
-
-
-
-
-class Budget(Table):
-    budgets = [
-        [1, "Papa", "Allowance", 1500],
-        [2, "Mama", "Allowance", 1000],
-        [3, "DOST", "Scholarship", 8000],
-        [3, "Savings", "Own", 5000],
-    ]
-    total_budget = 0.0
-    headers = ["ID", "Source", "Category", "Amount"]
-    table = budgets
     
-
-    def Show_Table(self):
-        print("\n\tBUDGET LIST\n")
-        super().Show_Table(self.budgets)
-        self.total_budget = super().Calculate_Total()
-        print("\nTOTAL BUDGET: " + str(self.total_budget) + "\n")
-
-    def Input_Item(self):
-        super().Display_Operation("ADD BUDGET")
-        print("\n\n")
-        source = input("Source: ")
-        category = input("Category: ")
-        amount = float(input("Amount: "))
-        self.Add_Item(source, category, amount)
-
-    def Edit_Item(self):
-        super().Display_Operation("EDIT BUDGET")
-        id = int(input("Id: "))
-        item_index = super().Get_Item_Index_By_Id(id)
-        item = self.budgets[item_index]
-
-        # ask what to edit
-        print(item)
-        key_to_edit = input("Edit [s] source, [c] category, [a] amount ? : ")
-        
-        if key_to_edit == 's' or key_to_edit == 'c' or key_to_edit == 'a':
-            new_value = input("New Value: ")
-
-            if key_to_edit == 's':
-                super().Edit_Item(item_index, 1, new_value)
-            elif key_to_edit == 'c':
-                super().Edit_Item(item_index, 2, new_value)
-            elif key_to_edit == 'a':
-                super().Edit_Item(item_index, 3, float(new_value))
-
-        else:
-            print("~Invalid choice~")
-
-    def Delete_Item(self):
-        super().Display_Operation("DELETE BUDGET")
-        id = int(input("Id: "))
-        super().Delete_Item(id)
-
-    def Filter_By_Category(self, category):
+    # displays filtered table based on category
+    def Show_Filtered_Table(self, category):
         filtered_table = []
-
+        sum = 0.00
         for row in self.table:
+            # if category matches, add to temp list then increment to total sum
             if row[2].lower() == category.lower():
                 filtered_table.append(row)
+                sum += row[3]
 
-        super().Show_Table(filtered_table)
+        print("\n\t" + self.title + " (By " + str(category) + ")\n")
 
-
-class Expense(Table):
-    expenses = [
-        [1, "Phone", "Tech Device", 15000],
-        [2, "Laptop", "Tech Device", 37000],
-        [3, "Food", "Basic Needs", 200],
-    ]
-    total_expenses = 0.0
-    headers = ["ID", "Item", "Category", "Amount"]
-    table = expenses
-    
-
-    def Show_Table(self):
-        print("\n\tEXPENSE LIST\n")
-        super().Show_Table(self.expenses)
-        self.total_expenses = super().Calculate_Total()
-        print("\nTOTAL EXPENSES: " + str(self.total_expenses) + "\n")
-
-    def Input_Item(self):
-        super().Display_Operation("ADD EXPENSE")
-        print("\n\n")
-        item = input("Item: ")
-        category = input("Category: ")
-        amount = float(input("Amount: "))
-        self.Add_Item(item, category, amount)
-
-    def Edit_Item(self):
-        super().Display_Operation("EDIT EXPENSE")
-        id = int(input("Id: "))
-        item_index = super().Get_Item_Index_By_Id(id)
-        item = self.expenses[item_index]
-
-        # ask what to edit
-        print(item)
-        key_to_edit = input("Edit [i] item, [c] category, [a] amount ? : ")
-        
-        if key_to_edit == 'i' or key_to_edit == 'c' or key_to_edit == 'a':
-            new_value = input("New Value: ")
-
-            if key_to_edit == 'i':
-                super().Edit_Item(item_index, 1, new_value)
-            elif key_to_edit == 'c':
-                super().Edit_Item(item_index, 2, new_value)
-            elif key_to_edit == 'a':
-                super().Edit_Item(item_index, 3, float(new_value))
-
+        # if no row in the filtered table
+        if len(filtered_table) == 0:
+            print("no data available:(")
         else:
-            print("~Invalid choice~")
+            # append a row that will show the total
+            total_row = [None, None, None, sum]
+            filtered_table.append(total_row)
+            show_table = tabulate(filtered_table, headers=self.headers, tablefmt="grid")
+            print(show_table) # print row
+        print()
 
-    def Delete_Item(self):
-        super().Display_Operation("DELETE EXPENSE")
-        id = int(input("Id: "))
-        super().Delete_Item(id)
-
-    def Filter_By_Category(self, category):
-        filtered_table = []
-
-        for row in self.table:
-            if row[2].lower() == category.lower():
-                filtered_table.append(row)
-
-        super().Show_Table(filtered_table)
-        
-class Options:
+   
+class Options: # creates options and validates user input
     def Validate_Answer(self, options, title):
         while True:
+            print()
             try: 
                 print(title)
                 for i in range(len(options)):
                     print("[" + str(i + 1) + "] " + options[i])
                 print("[0] Back to Menu")
 
-                choice = int(input("Choice: "))
+                choice = int(input("\nChoice: "))
                 if choice >= 0 and choice <= len(options):
                     return choice
                 else:
@@ -208,34 +171,49 @@ class Options:
             except ValueError:
                 print("Invalid answer!")
 
+# for visual purposes, display text with borders
+def display_operation(txt):
+    print("\n******************************")
+    print("\t " + str(txt))
+    print("******************************")
 
+# show the two tables: budget and expense table
 def Show_Tables(budget, expense):
-
     clear_screen()
+
+    display_operation("YOUR BUDGET BUDDY")
     budget.Show_Table()
     expense.Show_Table()
 
-    print("Total Budget: " + str(budget.total_budget)) 
-    print("Total Expense: " + str(expense.total_expenses)) 
-    print("\n  CURRENT SAVINGS: " + str(budget.total_budget - expense.total_expenses) + "\n")
+    print("Total Budget: " + str(budget.Calculate_Total())) 
+    print("Total Expense: " + str(expense.Calculate_Total())) 
+    print("\n  CURRENT SAVINGS: " + str(budget.Calculate_Total() - expense.Calculate_Total()) + "\n")
 
 
 
-# Main Function
-clear_screen()
-print("BUDGET TRACKER CLI APP")
-print("-----------------------")
+### Main Function ###
 
-budget = Budget()
-expense = Expense()
+budgets = [
+    [1, "Papa", "Allowance", 150], 
+    [2, "Mama", "Allowance", 100], 
+    [3, "DOST", "Scholarship", 120]
+]
+
+expenses = [
+    [1, "Phone", "Laptop", 37000], 
+]
+
+budget_table = Table("Budget", budgets, ["ID", "Source", "Category", "Amount"], "Source")
+expense_table = Table("Expense", expenses, ["ID", "Item", "Category", "Amount"], "Item")
 options = Options()
 
-table_obj = budget
+table_obj = budget_table
 
 clear_screen()
 
 while True:
-    Show_Tables(budget, expense)
+    Show_Tables(budget_table, expense_table)
+    
     # main menu
     menu_choice = options.Validate_Answer(
         ["Add", "Edit", "Delete", "View by Category"], 
@@ -243,95 +221,50 @@ while True:
     )
 
     if menu_choice == 1 or menu_choice == 2 or menu_choice == 3: # add, edit, delete
+        if menu_choice == 1:
+            display_operation("Add")
+        elif menu_choice == 2:
+            display_operation("Edit")
+        elif menu_choice == 3:
+            display_operation("Delete")
+        
         choice = options.Validate_Answer(
             ["Budget", "Expense"], 
             ""
         )
 
+        ### Determine if budget or expense
         if choice == 1: # budget
-            table_obj = budget
+            table_obj = budget_table
         elif choice == 2: # expense
-            table_obj = expense
-
+            table_obj = expense_table
+        else:
+            continue
+        
+        ### Determine what operation
         if menu_choice == 1: # add
-            table_obj.Input_Item()
+            table_obj.Add_Item()
 
         elif menu_choice == 2: # edit
             table_obj.Edit_Item()
-
+        
         elif menu_choice == 3: # delete
             table_obj.Delete_Item()
 
-    elif menu_choice == 4: # view by category
-        print("Categories: ")
-        categories = budget.Get_Categories() + expense.Get_Categories()
+    
+    elif menu_choice == 4: # show filtered table
+        display_operation("View by category")
+        print("Categories")
+        
+        # display all categories of data saved
+        categories = budget_table.Get_Categories() + expense_table.Get_Categories()
         print(categories)
         
+        # asks user to add a category
         chosen_category = input("Input category: ")
         
-        budget.Filter_By_Category(chosen_category)
-        expense.Filter_By_Category(chosen_category)
+        # shows the filtered table based on category
+        budget_table.Show_Filtered_Table(chosen_category)
+        expense_table.Show_Filtered_Table(chosen_category)
 
-        inputEnter = input("[ENTER] to proceed")
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-while True:
-    clear_screen then show table
-    [1] Add
-    [2] Edit
-    [3] Delete
-    [4] View by category
-    [0] End program
-
-    if 1: Add
-        clear_screen then show table
-        [1] Budget
-        [2] Expense
-        [0] Back to Menu
-
-        if 1 or 2:
-            Determine what class to access
-            use class function to get input - Add_Row()
-            add to table
-        Back to menu
-
-    else if 2:
-        clear_screen then show table
-        [1] Budget
-        [2] Expense
-        [0] Back to Menu
-
-        if 1 or 2:
-            Determine what class to access
-            use class function to edit a row - Edit_Row()
-        Back to menu
-    
-    else if 3:
-        clear_screen then show table
-        [1] Budget
-        [2] Expense
-        [0] Back to Menu
-
-        if 1 or 2:
-            Determine what class to access
-            use class function to delete a row - Delete_Row()
-        Back to menu
-
-    else if 4:
-        clear_screen then show table
-        display categories
-        take input for category
-        filter table  - Filter_Table()
-'''
+        inputEnter = input("[ENTER] to proceed...")
